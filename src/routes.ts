@@ -17,8 +17,8 @@ ChannelRouter.use('/front', verifyFrontRequest);
  * In this implementation, we respond with /front/${randomString(16)}.
  */
 ChannelRouter.post('/', async (req: Request, res: Response) => {
-  if (req.body.type === 'list_addresses') {
-    res.status(200).json({
+ if (req.body.type === 'list_addresses') {
+  return res.status(200).json({
       type: 'success',
       addresses: [
         {
