@@ -17,7 +17,7 @@ ChannelRouter.use('/front', verifyFrontRequest);
  */
 ChannelRouter.post('/', async (req: Request, res: Response) => {
   if (req.body.type === 'list_addresses') {
-    res.status(200).json({
+    return res.status(200).json({
       type: 'success',
       addresses: [
         {
@@ -33,7 +33,7 @@ ChannelRouter.post('/', async (req: Request, res: Response) => {
   }
   
   if (req.body.type !== 'authorization') {
-    res.send(400).json({ type: 'bad_request', message: 'Unknown type sent to channel' });
+    return res.status(400).json({ type: 'bad_request', message: 'Unknown type sent to channel' });
   }
 
   const webhookHostname = callbackHostname || os.hostname();
@@ -64,7 +64,7 @@ ChannelRouter.post('/', async (req: Request, res: Response) => {
  */
 ChannelRouter.post('/front/:webhookId', async (req: Request, res: Response) => {
   if (!['message', 'message_autoreply', 'message_imported'].includes(req.body.type)) {
-    return res.send(400).json({ type: 'bad_request', message: 'Unknown message type sent to channel' });
+    return res.status(400).json({ type: 'bad_request', message: 'Unknown message type sent to channel' });
   }
 
   if (req.body.type === 'message_imported') {
@@ -88,7 +88,7 @@ ChannelRouter.post('/front/:webhookId', async (req: Request, res: Response) => {
  */
 ChannelRouter.delete('/front/:webhookId', async (req: Request, res: Response) => {
   if (req.body.type !== 'delete') {
-    res.send(400).json({ type: 'bad_request', message: 'Unknown delete type sent to channel' });
+    return res.status(400).json({ type: 'bad_request', message: 'Unknown delete type sent to channel' });
   }
 
   console.log(`Channel with ID ${req.body.payload.channel_id} was deleted`);
@@ -159,7 +159,7 @@ function verifyFrontRequest(req: Request, res: Response, next: NextFunction) {
     .digest('base64');
     
   if (hmac !== req.headers['x-front-signature']) {
-    return res.send(400).json({ type: 'bad_request', message: 'Signature not verified' });
+    return res.status(400).json({ type: 'bad_request', message: 'Signature not verified' });
   }
 
   next();
