@@ -194,7 +194,7 @@ ChannelRouter.post('/connecteam-inbound', async (req, res) => {
       return res.status(400).json({ error: 'phone and message are required' });
     }
 
-    const attachments = [];
+   const attachments: { buffer: Buffer; filename: string; content_type: string }[] = [];
     if (attachment_base64 && attachment_filename && attachment_content_type) {
       attachments.push({
         buffer: Buffer.from(attachment_base64, 'base64'),
