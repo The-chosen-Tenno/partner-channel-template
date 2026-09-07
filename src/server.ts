@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 export const frontId = process.env.FRONT_ID as string;
 export const frontSecret = process.env.FRONT_SECRET as string;
 export const callbackHostname = process.env.CALLBACK_HOSTNAME as string;
+export const channelId = process.env.CHANNEL_ID as string;
 export const serverPort = process.env.PORT || '3000';
 
 if (!frontId || !frontSecret) {
