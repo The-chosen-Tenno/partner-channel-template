@@ -1,11 +1,13 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { createHmac } from 'crypto';
+import needle from 'needle';
 import * as os from 'os';
 import { callbackHostname, frontSecret, randomString } from './server';
 
 import { FrontConnector } from './front_connector';
 import { channelId } from './server';
 
+const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL as string;
 const ChannelRouter = Router();
 
 // FRONT ROUTES
@@ -76,6 +78,22 @@ ChannelRouter.post('/front/:webhookId', async (req: Request, res: Response) => {
   }
 
   console.log(`Received message from Front with ID ${req.body.payload.id}`);
+
+  const messageText = req.body.payload.body || req.body.payload.text;
+  const recipient = (req.body.payload.recipients || []).find((r: any) => r.role === 'to');
+  const phone = recipient ? recipient.handle : null;
+
+  if (phone && messageText && MAKE_WEBHOOK_URL) {
+    try {
+      await needle('post', MAKE_WEBHOOK_URL, { phone, message: messageText }, { json: true });
+      console.log(`Forwarded reply to Make.com for ${phone}`);
+    } catch (err) {
+      console.error('Failed to forward message to Make.com', err);
+    }
+  } else {
+    console.log('Skipped forwarding: missing phone, message, or webhook URL');
+  }
+
   const external_id = randomString(16);
   const external_conversation_id = randomString(16);
 
