@@ -190,11 +190,13 @@ ChannelRouter.post('/connecteam-inbound', async (req, res) => {
   try {
     const { phone, message, name, attachment_base64, attachment_filename, attachment_content_type } = req.body;
 
-    if (!phone || !message) {
-      return res.status(400).json({ error: 'phone and message are required' });
+    if (!phone) {
+      return res.status(400).json({ error: 'phone is required' });
     }
 
-   const attachments: { buffer: Buffer; filename: string; content_type: string }[] = [];
+    const finalMessage = message || (attachment_filename ? `Sent an attachment: ${attachment_filename}` : 'Sent a message');
+
+    const attachments: { buffer: Buffer; filename: string; content_type: string }[] = [];
     if (attachment_base64 && attachment_filename && attachment_content_type) {
       attachments.push({
         buffer: Buffer.from(attachment_base64, 'base64'),
@@ -204,7 +206,7 @@ ChannelRouter.post('/connecteam-inbound', async (req, res) => {
     }
 
     const result = await FrontConnector.importInboundMessage(channelId, {
-      body: message,
+      body: finalMessage,
       sender: { handle: phone, name: name || phone },
       metadata: {
         external_id: `msg-${Date.now()}`,
