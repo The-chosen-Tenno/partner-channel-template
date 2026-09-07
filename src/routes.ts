@@ -188,10 +188,19 @@ function verifyFrontRequest(req: Request, res: Response, next: NextFunction) {
 
 ChannelRouter.post('/connecteam-inbound', async (req, res) => {
   try {
-    const { phone, message, name } = req.body;
+    const { phone, message, name, attachment_base64, attachment_filename, attachment_content_type } = req.body;
 
     if (!phone || !message) {
       return res.status(400).json({ error: 'phone and message are required' });
+    }
+
+    const attachments = [];
+    if (attachment_base64 && attachment_filename && attachment_content_type) {
+      attachments.push({
+        buffer: Buffer.from(attachment_base64, 'base64'),
+        filename: attachment_filename,
+        content_type: attachment_content_type
+      });
     }
 
     const result = await FrontConnector.importInboundMessage(channelId, {
@@ -200,7 +209,8 @@ ChannelRouter.post('/connecteam-inbound', async (req, res) => {
       metadata: {
         external_id: `msg-${Date.now()}`,
         external_conversation_id: `convo-${phone}`
-      }
+      },
+      ...(attachments.length > 0 ? { attachments } : {})
     });
 
     res.status(200).json({ success: true, data: result.body });
