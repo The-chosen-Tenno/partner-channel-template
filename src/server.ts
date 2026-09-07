@@ -20,8 +20,8 @@ export function randomString(length: number): string {
 
 const app = express();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '15mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '15mb' }));
 app.use(ChannelRouter);
 
 app.listen(serverPort, () => {
