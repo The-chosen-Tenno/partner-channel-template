@@ -3,6 +3,9 @@ import { createHmac } from 'crypto';
 import * as os from 'os';
 import { callbackHostname, frontSecret, randomString } from './server';
 
+import { FrontConnector } from './front_connector';
+import { channelId } from './server';
+
 const ChannelRouter = Router();
 
 // FRONT ROUTES
@@ -164,5 +167,28 @@ function verifyFrontRequest(req: Request, res: Response, next: NextFunction) {
 
   next();
 }
+
+ChannelRouter.post('/connecteam-inbound', async (req, res) => {
+  try {
+    const { phone, message, name } = req.body;
+
+    if (!phone || !message) {
+      return res.status(400).json({ error: 'phone and message are required' });
+    }
+
+    const result = await FrontConnector.importInboundMessage(channelId, {
+      body: message,
+      sender: { handle: phone, name: name || phone },
+      metadata: {
+        external_id: `msg-${Date.now()}`,
+        external_conversation_id: `convo-${phone}`
+      }
+    });
+
+    res.status(200).json({ success: true, data: result.body });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
 
 export default ChannelRouter;
