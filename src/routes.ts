@@ -78,6 +78,10 @@ ChannelRouter.post('/front/:webhookId', async (req: Request, res: Response) => {
   }
 
   console.log(`Received message from Front with ID ${req.body.payload.id}`);
+
+  const recipient = (req.body.payload.recipients || []).find((r: any) => r.role === 'to');
+  const phone = recipient ? recipient.handle : null;
+
   if (phone && MAKE_WEBHOOK_URL) {
     try {
       const freshToken = FrontConnector.buildToken(channelId);
