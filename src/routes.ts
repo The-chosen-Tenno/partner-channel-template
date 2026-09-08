@@ -83,21 +83,30 @@ ChannelRouter.post('/front/:webhookId', async (req: Request, res: Response) => {
   const recipient = (req.body.payload.recipients || []).find((r: any) => r.role === 'to');
   const phone = recipient ? recipient.handle : null;
 
-if (phone && MAKE_WEBHOOK_URL) {
-  try {
-    const freshToken = FrontConnector.buildToken(channelId);
-    const forwardPayload = {
-      ...req.body.payload,
-      front_token: freshToken
-    };
-    await needle('post', MAKE_WEBHOOK_URL, forwardPayload, { json: true });
-    console.log(`Forwarded reply to Make.com for ${phone}`);
-  } catch (err) {
-    console.error('Failed to forward message to Make.com', err);
+  if (phone && MAKE_WEBHOOK_URL) {
+    try {
+      const freshToken = FrontConnector.buildToken(channelId);
+      const forwardPayload = {
+        ...req.body.payload,
+        front_token: freshToken
+      };
+      await needle('post', MAKE_WEBHOOK_URL, forwardPayload, { json: true });
+      console.log(`Forwarded reply to Make.com for ${phone}`);
+    } catch (err) {
+      console.error('Failed to forward message to Make.com', err);
+    }
+  } else {
+    console.log('Skipped forwarding: missing phone or webhook URL');
   }
-} else {
-  console.log('Skipped forwarding: missing phone or webhook URL');
-}
+
+  const external_id = randomString(16);
+  const external_conversation_id = randomString(16);
+
+  return res.status(200).json({
+    type: 'success',
+    external_id,
+    external_conversation_id,
+  });
 });
 
 /**
